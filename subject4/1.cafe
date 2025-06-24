@@ -81,15 +81,13 @@ mod! GLIST-ERR(E :: TRIV-ERR) {
     op tl : ErrList -> ErrList .
     op tl : List&Err -> List&Err .
     op if_then{_}else{_} : Bool List&Err List&Err -> List&Err .
-    
-    
     var X : Elt.E 
     vars L L2 : List .
     var XE : Elt&Err.E .
     vars LE LE2 : List&Err .
-
     eq err.E | LE = errList .
-    eq XE | errList =
+    eq XE | errList = errList .
+    
 
 
 
