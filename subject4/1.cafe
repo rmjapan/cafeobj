@@ -131,6 +131,16 @@ mod! NATLIST7 {
      }
     )
 }
+mod! NATLIST8 {
+    pr(GLIST-ERR(E <= TRIV-ERR2NAT-ERR)
+    *{
+        sort List -> NatList,
+        sort Nil -> NLNil,
+        sort NnList -> NnNatList,
+        sort List&Err -> NatList&Err,
+        op nil -> nlnil,
+        op errlist -> errNatList})
+}
 -- NATLIST1 Test
 -- set trace on .
 open NATLIST1 .
