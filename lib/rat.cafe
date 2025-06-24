@@ -1,0 +1,83 @@
+**
+** Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions
+** are met:
+**
+**   * Redistributions of source code must retain the above copyright
+**     notice, this list of conditions and the following disclaimer.
+**
+**   * Redistributions in binary form must reproduce the above
+**     copyright notice, this list of conditions and the following
+**     disclaimer in the documentation and/or other materials
+**     provided with the distribution.
+**
+** THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+** OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+** ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+** DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+** GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+** INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+** WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+** NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**
+sys:mod! RAT
+      principal-sort Rat
+{
+  imports {
+    protecting (INT)
+    protecting (RAT-VALUE)
+  }
+  signature {
+    op - _ : Rat -> Rat { demod prec: 15 }
+    op - _ : NzRat -> NzRat { demod prec: 15 }
+    op _ - _ : Rat Rat -> Rat { strat: (0 1 2) demod prec: 33 r-assoc }
+    pred _ >= _ : Rat Rat  { demod prec: 41 }
+    pred _ > _ : Rat Rat  { demod prec: 41 }
+    pred _ <= _ : Rat Rat  { demod prec: 41 }
+    pred _ < _ : Rat Rat  { demod prec: 41 }
+    op _ * _ : Rat Rat -> Rat { assoc comm idr: 1 demod prec: 41 }
+    op _ + _ : Rat Rat -> Rat { assoc comm idr: 0 demod prec: 41 }
+    op _ rem _ : Rat NzRat -> Rat { demod prec: 41 }
+    op _ / _ : Rat NzRat -> Rat { demod prec: 31 l-assoc }
+    op _ / _ : NzRat NzRat -> NzRat { demod prec: 31 l-assoc }
+  }
+  axioms {
+    var R : Rat
+    var S : Rat
+    var NS : NzRat
+    eq [:BDEMOD]: (R + S) = #! (+ r s) .
+    eq [:BDEMOD]: (- R) = #! (- r) .
+    eq [:BDEMOD]: (R - S) = (R + (- S)) .
+    eq [:BDEMOD]: (R * S) = #! (* r s) .
+    eq [:BDEMOD]: (R / NS) = #! (/ r ns) .
+    eq [:BDEMOD]: (R rem NS) = #! (rem r ns) .
+    eq [:BDEMOD]: (R < S) = #! (< r s) .
+    eq [:BDEMOD]: (R <= S) = #! (<= r s) .
+    eq [:BDEMOD]: (R > S) = #! (> r s) .
+    eq [:BDEMOD]: (R >= S) = #! (>= r s) .
+  }
+}
+
+lispq
+(when (fboundp 'chaos-rat-tram-interface) (fmakunbound 'chaos-rat-tram-interface))
+
+lispq
+(defun chaos-rat-tram-interface ()
+  (setq *z-rat* (get-z-module-or-panic "RAT"))
+  (push *z-rat* *tram-builtin-modules*))
+
+lispq
+(eval-when (:execute :load-toplevel)
+  (chaos-rat-tram-interface))
+
+protect RAT
+provide rat
+--
+eof
+
+

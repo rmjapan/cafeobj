@@ -1,0 +1,154 @@
+reset
+mod* TRIV-ERR { 
+    [Elt Err < Elt&Err]
+    op err : -> Err .
+}
+mod! NAT-ERR {
+    pr(NAT) -- NATモジュールをインポート（上書き禁止）
+    [Nat ErrNat < Nat&Err]
+    op errNat : -> ErrNat {constr} . -- errNatはErrNat型である.
+    op p_ : Zero -> ErrNat . -- 0 - 1はErrNat
+    op p_ : ErrNat -> ErrNat .
+    op p_ : Nat&Err -> Nat&Err .
+    op _quo_ : Nat&Err Zero -> ErrNat . -- 0 / 0はErrNat
+    op _quo_ : Nat&Err ErrNat -> ErrNat .
+    op _quo_ : ErrNat Nat&Err -> ErrNat .
+    op _quo_ : Nat&Err Nat&Err -> Nat&Err .
+    var NE : Nat&Err .
+    eq p 0 = errNat .
+    eq p errNat = errNat .
+    eq NE quo 0 = errNat .
+    eq NE quo errNat = errNat .
+    eq errNat quo NE = errNat .
+}
+view TRIV2NAT from TRIV to NAT {
+    sort Elt -> Nat,
+}
+view TRIV-ERR2NAT-ERR from TRIV-ERR to NAT-ERR {
+    sort Elt -> Nat,
+    sort Err -> ErrNat,
+    sort Elt&Err -> Nat&Err,
+    op err -> errNat,
+
+}
+mod! GLIST1(E :: TRIV) {
+    [Nil NnList < List] -- Order Sorts
+    op nil : -> Nil {constr} .
+    op _|_ : Elt.E List -> NnList {constr} . -- 非空リスト
+    op _@_ : List  List -> List . -- concat
+    var X : Elt.E .
+    vars L L2 : List .
+    eq nil @ L2 = L2 .
+    eq (X | L) @ L2 = X | (L @ L2) .
+}
+mod! GLIST2(E :: TRIV-ERR) {
+    [Nil NnList < List] -- Order Sorts
+    op nil : -> Nil {constr} .
+    op _|_ : Elt.E List -> NnList {constr} . -- 非空リスト
+    op _@_ : List  List -> List . -- concat
+    op hd : Nil -> Err.E . -- 空リストの先頭要素はErr型
+    op hd : NnList -> Elt.E . -- 非空リストの先頭要素は何でも型
+    op hd : List -> Elt&Err.E .
+    op tl : List -> List .
+    var X : Elt.E 
+    vars L L2 : List .
+    eq nil @ L2 = L2 .
+    eq (X | L) @ L2 = X | (L @ L2) .
+    eq hd(nil) = err.E .
+    eq hd(X | L) = X .
+    eq tl(nil) = nil .
+    eq tl(X | L) = L .
+
+}
+mod! GLIST-ERR(E :: TRIV-ERR) {
+    -- OrderSorts
+    [Nil NnList < List]
+    [List ErrList < List&Err]
+    op nil : -> Nil {constr} .
+    op _|_ : Elt.E List -> NnList {constr} . -- 非空リスト
+    op errList : ErrList {constr} .
+    op _|_ : Elt&Err.E List&Err -> List&Err .
+    op _@_ : List  List -> List . -- concat
+    op _@_ : ErrList List&Err -> ErrList .
+    op _@_ : List&Err ErrList -> ErrList .
+    op _@_ : List&Err List&Err -> List&Err .
+    op hd : Nil -> Err.E . -- 空リストの先頭要素はErr型
+    op hd : NnList -> Elt.E . -- 非空リストの先頭要素は何でも型
+    op hd : ErrList -> Err.E .
+    op hd : List&Err -> Elt&Err.E .
+    op tl : Nil -> ErrList .
+    op tl : NnList -> List .
+    op tl : ErrList -> ErrList .
+    op tl : List&Err -> List&Err .
+    op if_then{_}else{_} : Bool List&Err List&Err -> List&Err .
+    
+    
+    var X : Elt.E 
+    vars L L2 : List .
+    var XE : Elt&Err.E .
+    vars LE LE2 : List&Err .
+
+    eq err.E | LE = errList .
+    eq XE | errList =
+
+
+
+    
+    eq nil @ L2 = L2 .
+    eq (X | L) @ L2 = X | (L @ L2) .
+    eq hd(nil) = err.E .
+    eq hd(X | L) = X .
+    eq tl(nil) = nil .
+    eq tl(X | L) = L .
+
+}
+
+
+mod! NATLIST1 {
+    pr(GLIST1(E <= TRIV2NAT))
+}
+mod! NATLIST2 {
+    pr(GLIST2(E <= TRIV-ERR2NAT-ERR))
+}
+mod! NATLIST7 {
+    pr(GLIST2(E <= TRIV-ERR2NAT-ERR)
+    *{
+        sort List -> NatList,
+        sort Nil -> NLNil,
+        sort NnList -> NnNatList,
+        op nil -> nlnil
+     }
+    )
+}
+-- NATLIST1 Test
+-- set trace on .
+open NATLIST1 .
+red nil .
+red (0 | 2 | nil) .
+red (0 | nil) @ (0 | 2 | nil) .
+close
+-- set trace off .
+
+-- NATLIST2 Test
+-- set trace on .
+open NATLIST2 .
+red nil .
+red hd(nil) .
+red (0 | 2 | nil) .
+red (0 | nil) @ (0 | 2 | nil) .
+red (4 | 3 | nil) @ (2 | 1 | 0 | nil) .
+close
+-- set trace off .
+
+-- NATLIST7 Test(リネーミング)
+-- set trace on .
+open NATLIST7 .
+red nlnil .
+red hd(nlnil) .
+red tl(nlnil) .
+red tl((4 | 3 | nlnil) @ (2 | 1 | 0 | nlnil)) .
+red (0 | 2 | nlnil) .
+red (0 | nlnil) @ (0 | 2 | nlnil) .
+red (4 | 3 | nlnil) @ (2 | 1 | 0 | nlnil) .
+close
+-- set trace off .

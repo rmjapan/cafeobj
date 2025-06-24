@@ -1,0 +1,95 @@
+**
+** Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions
+** are met:
+**
+**   * Redistributions of source code must retain the above copyright
+**     notice, this list of conditions and the following disclaimer.
+**
+**   * Redistributions in binary form must reproduce the above
+**     copyright notice, this list of conditions and the following
+**     disclaimer in the documentation and/or other materials
+**     provided with the distribution.
+**
+** THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+** OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+** ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+** DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+** GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+** INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+** WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+** NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**
+sys:mod! FLOAT
+      principal-sort Float
+{
+  imports {
+    protecting (FLOAT-VALUE)
+    protecting (BOOL)
+  }
+  signature {
+    op _ + _ : Float Float -> Float { assoc comm demod prec: 33 r-assoc }
+    op _ - _ : Float Float -> Float { demod prec: 33 r-assoc }
+    op _ * _ : Float Float -> Float { assoc comm demod prec: 31 r-assoc }
+    op _ / _ : Float Float -> Float { demod prec: 31 l-assoc }
+    op _ rem _ : Float Float -> Float { demod prec: 31 l-assoc }
+    op exp : Float -> Float { demod prec: 0 }
+    op log : Float -> Float { demod prec: 0 }
+    op sqrt : Float -> Float { demod prec: 0 }
+    op abs : Float -> Float { demod prec: 0 }
+    op sin : Float -> Float { demod prec: 0 }
+    op cos : Float -> Float { demod prec: 0 }
+    op atan : Float -> Float { demod prec: 0 }
+    op pi : -> Float { demod prec: 0 }
+    pred _ < _ : Float Float  { demod prec: 51 }
+    pred _ <= _ : Float Float  { demod prec: 51 }
+    pred _ > _ : Float Float  { demod prec: 51 }
+    pred _ >= _ : Float Float  { demod prec: 51 }
+    pred _ = [ _ ] _ : Float Float Float  { demod prec: 51 }
+  }
+  axioms {
+    var X : Float
+    var Y : Float
+    var Z : Float
+    eq [:BDEMOD]: (X + Y) = #! (+ x y) .
+    eq [:BDEMOD]: (X - Y) = #! (- x y) .
+    eq [:BDEMOD]: (X * Y) = #! (* x y) .
+    eq [:BDEMOD]: (X / Y) = #! (/ x y) .
+    eq [:BDEMOD]: (X rem Y) = #! (rem x y) .
+    eq [:BDEMOD]: exp(X) = #! (exp x) .
+    eq [:BDEMOD]: log(X) = #! (log x) .
+    eq [:BDEMOD]: sqrt(X) = #! (sqrt x) .
+    eq [:BDEMOD]: abs(X) = #! (abs x) .
+    eq [:BDEMOD]: sin(X) = #! (sin x) .
+    eq [:BDEMOD]: cos(X) = #! (cos x) .
+    eq [:BDEMOD]: atan(X) = #! (atan x) .
+    eq [:BDEMOD]: pi = #! pi .
+    eq [:BDEMOD]: (X < Y) = #! (< x y) .
+    eq [:BDEMOD]: (X <= Y) = #! (<= x y) .
+    eq [:BDEMOD]: (X > Y) = #! (> x y) .
+    eq [:BDEMOD]: (X >= Y) = #! (>= x y) .
+    eq [:BDEMOD]: (X = [ Z ] Y) = #! (< (abs (- x y)) z) .
+  }
+}
+
+lispq
+(when (fboundp 'chaos-float-tram-interface) (fmakunbound 'chaos-float-tram-interface))
+
+lispq
+(defun chaos-float-tram-interface ()
+  (setq *z-float* (get-z-module-or-panic "FLOAT"))
+  (push *z-float* *tram-builtin-modules*))
+
+lispq
+(eval-when (:execute :load-toplevel)
+  (chaos-float-tram-interface))
+
+protect FLOAT
+provide float
+** EOF
+

@@ -1,0 +1,92 @@
+**
+** Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions
+** are met:
+**
+**   * Redistributions of source code must retain the above copyright
+**     notice, this list of conditions and the following disclaimer.
+**
+**   * Redistributions in binary form must reproduce the above
+**     copyright notice, this list of conditions and the following
+**     disclaimer in the documentation and/or other materials
+**     provided with the distribution.
+**
+** THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+** OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+** ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+** DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+** GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+** INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+** WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+** NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**
+sys:mod! CHARACTER
+      principal-sort Character
+{
+  imports {
+    protecting (BOOL)
+    protecting (NAT)
+    protecting (CHAR-VALUE)
+  }
+  signature {
+    op char-code : Character -> Nat { demod prec: 0 }
+    op code-char : Nat -> Character { demod prec: 0 }
+    op upcase : Character -> Character { demod prec: 0 }
+    op downcase : Character -> Character { demod prec: 0 }
+    pred graphic-char-p : Character  { demod prec: 0 }
+    pred alpha-char-p : Character  { demod prec: 0 }
+    pred upper-case-p : Character  { demod prec: 0 }
+    pred lower-case-p : Character  { demod prec: 0 }
+    pred both-case-p : Character  { demod prec: 0 }
+    pred digit-char-p : Character  { demod prec: 0 }
+    pred alphanumericp : Character  { demod prec: 0 }
+    pred char< : Character Character  { demod prec: 0 }
+    pred char> : Character Character  { demod prec: 0 }
+    pred char<= : Character Character  { demod prec: 0 }
+    pred char>= : Character Character  { demod prec: 0 }
+    pred char= : Character Character  { demod prec: 0 }
+  }
+  axioms {
+    var C : Character
+    var C2 : Character
+    var N : Nat
+    eq [:BDEMOD]: char-code(C) = #! (char-code c) .
+    ceq code-char(N) = #! (code-char n) if (N <= 255) .
+    eq [:BDEMOD]: upcase(C) = #! (char-upcase c) .
+    eq [:BDEMOD]: downcase(C) = #! (char-downcase c) .
+    eq [:BDEMOD]: graphic-char-p(C) = #! (graphic-char-p c) .
+    eq [:BDEMOD]: alpha-char-p(C) = #! (alpha-char-p c) .
+    eq [:BDEMOD]: upper-case-p(C) = #! (upper-case-p c) .
+    eq [:BDEMOD]: lower-case-p(C) = #! (lower-case-p c) .
+    eq [:BDEMOD]: both-case-p(C) = #! (both-case-p c) .
+    eq [:BDEMOD]: digit-char-p(C) = #! (digit-char-p c) .
+    eq [:BDEMOD]: alphanumericp(C) = #! (alphanumericp c) .
+    eq [:BDEMOD]: char=(C,C2) = #! (char= c c2) .
+    eq [:BDEMOD]: char<(C,C2) = #! (char< c c2) .
+    eq [:BDEMOD]: char>(C,C2) = #! (char> c c2) .
+    eq [:BDEMOD]: char<=(C,C2) = #! (char<= c c2) .
+    eq [:BDEMOD]: char>=(C,C2) = #! (char>= c c2) .
+  }
+}
+
+lispq
+(when (fboundp 'chaos-character-tram-interface) (fmakunbound 'chaos-character-tram-interface))
+lispq
+(defun chaos-character-tram-interface ()
+  (setq *z-char* (get-z-module-or-panic "CHARACTER"))
+  (push *z-char* *tram-builtin-modules*))
+
+lispq
+(eval-when (:execute :load-toplevel)
+  (chaos-character-tram-interface))
+
+protect CHARACTER
+provide character
+--
+eof
+

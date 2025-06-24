@@ -1,0 +1,87 @@
+**
+** Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions
+** are met:
+**
+**   * Redistributions of source code must retain the above copyright
+**     notice, this list of conditions and the following disclaimer.
+**
+**   * Redistributions in binary form must reproduce the above
+**     copyright notice, this list of conditions and the following
+**     disclaimer in the documentation and/or other materials
+**     provided with the distribution.
+**
+** THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+** OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+** ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+** DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+** GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+** INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+** WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+** NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**
+sys:mod! NAT
+      principal-sort Nat
+{
+  imports {
+    protecting (NZNAT)
+    protecting (NAT-VALUE)
+  }
+  signature {
+    op s _ : Nat -> NzNat { demod prec: 15 }
+    pred _ >= _ : Nat Nat  { demod prec: 51 }
+    pred _ > _ : Nat Nat  { demod prec: 51 }
+    pred _ <= _ : Nat Nat  { demod prec: 51 }
+    pred _ < _ : Nat Nat  { demod prec: 51 }
+    op _ * _ : Nat Nat -> Nat { assoc comm idr: 1 demod prec: 31 }
+    op _ + _ : Nat Nat -> Nat { assoc comm idr: 0 demod prec: 33 }
+    op sd : Nat Nat -> Nat { comm demod prec: 0 }
+    op _ quo _ : Nat NzNat -> Nat { demod prec: 31 }
+    op _ rem _ : Nat NzNat -> Nat { demod prec: 31 l-assoc }
+    pred _ divides _ : NzNat Nat  { demod prec: 51 }
+    op p _ : NzNat -> Nat { demod prec: 15 }
+  }
+  axioms {
+    var M : Nat
+    var N : Nat
+    var NN : NzNat
+    eq [:BDEMOD]: sd(M,N) = #! (abs (- m n)) .
+    eq [:BDEMOD]: (M + N) = #! (+ m n) .
+    eq [:BDEMOD]: (M * N) = #! (* m n) .
+    eq [:BDEMOD]: (M quo NN) = #! (truncate m nn) .
+    eq [:BDEMOD]: (M rem NN) = #! (rem m nn) .
+    eq [:BDEMOD]: (NN divides M) = #! (= 0 (rem m nn)) .
+    eq [:BDEMOD]: (N < 0) = false .
+    eq [:BDEMOD]: (0 < NN) = true .
+    eq [:BDEMOD]: (NN <= 0) = false .
+    eq [:BDEMOD]: (0 <= N) = true .
+    eq [:BDEMOD]: (0 > N) = false .
+    eq [:BDEMOD]: (NN > 0) = true .
+    eq [:BDEMOD]: (0 >= NN) = false .
+    eq [:BDEMOD]: (N >= 0) = true .
+    eq [:BDEMOD]: (s 0) = 1 .
+    eq [:BDEMOD]: (p NN) = #! (- nn 1) .
+ }
+}
+
+lispq
+(when (fboundp 'chaos-nat-tram-interface) (fmakunbound 'chaos-nat-tram-interface))
+
+lispq
+(defun chaos-nat-tram-interface ()
+  (setq *z-nat* (get-z-module-or-panic "NAT"))
+  (push *z-nat* *tram-builtin-modules*))
+
+lispq
+(eval-when (:execute :load-toplevel)
+  (chaos-nat-tram-interface))
+
+protect NAT
+provide nat
+--
+eof
