@@ -3,6 +3,11 @@ mod* TRIV-ERR {
     [Elt Err < Elt&Err]
     op err : -> Err .
 }
+mod* TRIV-ERR-ORD {
+    [Elt Err < Elt&Err]
+    op err : -> Err .
+    op ord : Elt Elt -> Bool .
+}
 mod! NAT-ERR {
     pr(NAT) -- NATモジュールをインポート（上書き禁止）
     [Nat ErrNat < Nat&Err]
