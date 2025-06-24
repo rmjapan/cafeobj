@@ -173,3 +173,11 @@ red (0 | nlnil) @ (0 | 2 | nlnil) .
 red (4 | 3 | nlnil) @ (2 | 1 | 0 | nlnil) .
 close
 -- set trace off .
+
+-- NATLIST8 Test 
+open NATLIST8
+red hd(nlnil) .
+red hd((4 | 3 | nlnil) @ (2 | 1 | 0 | nlnil)) .
+red tl(nlnil) .
+red tl((4 | 3 | nlnil) @ (2 | 1 | 0 | nlnil)) .
+close
