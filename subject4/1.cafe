@@ -55,7 +55,7 @@ mod! GLIST2(E :: TRIV-ERR) {
     op hd : NnList -> Elt.E . -- 非空リストの先頭要素は何でも型
     op hd : List -> Elt&Err.E .
     op tl : List -> List .
-    var X : Elt.E 
+    var X : Elt.E .
     vars L L2 : List .
     eq nil @ L2 = L2 .
     eq (X | L) @ L2 = X | (L @ L2) .
@@ -71,7 +71,7 @@ mod! GLIST-ERR(E :: TRIV-ERR) {
     [List ErrList < List&Err]
     op nil : -> Nil {constr} .
     op _|_ : Elt.E List -> NnList {constr} . -- 非空リスト
-    op errList : ErrList {constr} .
+    op errList : -> ErrList {constr} .
     op _|_ : Elt&Err.E List&Err -> List&Err .
     op _@_ : List  List -> List . -- concat
     op _@_ : ErrList List&Err -> ErrList .
@@ -139,7 +139,9 @@ mod! NATLIST8 {
         sort NnList -> NnNatList,
         sort List&Err -> NatList&Err,
         op nil -> nlnil,
-        op errlist -> errNatList})
+        op errlist -> errNatList
+        }
+        )
 }
 -- NATLIST1 Test
 -- set trace on .
