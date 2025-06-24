@@ -34,7 +34,6 @@ view TRIV-ERR2NAT-ERR from TRIV-ERR to NAT-ERR {
     sort Err -> ErrNat,
     sort Elt&Err -> Nat&Err,
     op err -> errNat,
-
 }
 mod! GLIST1(E :: TRIV) {
     [Nil NnList < List] -- Order Sorts
@@ -137,11 +136,28 @@ mod! NATLIST8 {
         sort List -> NatList,
         sort Nil -> NLNil,
         sort NnList -> NnNatList,
+        sort ErrList -> ErrNatList,
         sort List&Err -> NatList&Err,
         op nil -> nlnil,
-        op errlist -> errNatList
+        op errList -> errNatList
         }
         )
+}
+view TRIV-ERR2NATLIST8 from TRIV-ERR to NATLIST8 {
+    sort Elt -> NatList,           
+    sort Err -> ErrNatList,        
+    sort Elt&Err -> NatList&Err,   
+    op err -> errNatList,          
+}
+mod! NATLISTLIST1 {
+    pr(GLIST-ERR(E <= TRIV-ERR2NATLIST8)
+       * {sort List -> NatListList,          
+          sort Nil -> NLLNil,                 
+          sort NnList -> NnNatListList,       
+          sort ErrList -> ErrNatListList,     
+          sort List&Err -> NatListList&Err,   
+          op nil -> nllnil,                   
+          op errList -> errNatListList } )    
 }
 -- NATLIST1 Test
 -- set trace on .
@@ -177,9 +193,18 @@ close
 -- set trace off .
 
 -- NATLIST8 Test 
-open NATLIST8
+open NATLIST8 .
 red hd(nlnil) .
 red hd((4 | 3 | nlnil) @ (2 | 1 | 0 | nlnil)) .
 red tl(nlnil) .
 red tl((4 | 3 | nlnil) @ (2 | 1 | 0 | nlnil)) .
 close
+
+-- NATLISTLIST1 Test
+open NATLISTLIST1 .
+red hd(nllnil) .
+red hd((4 | 3 | nlnil) | (2 | 1 | 0 | nlnil) | nllnil) .
+red tl(nllnil) .
+red tl((4 | 3 | nlnil) | (2 | 1 | 0 | nlnil) | nllnil) .
+close
+
