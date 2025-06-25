@@ -288,6 +288,42 @@ mod! GQSORT(E :: TRIV-ERR-ORD) {
 }
 
 
+mod! GMERGESORT(E :: TRIV-ERR-ORD) {
+  pr(GLIST-ERR(E)) -- エラーを含むリスト機能
+  [PairOfLists]
+  
+  -- シグネチャ
+  op pair : List List -> PairOfLists {constr} . -- LISTのペアを作る
+  op left : PairOfLists -> List . -- 左のリスト
+  op right : PairOfLists -> List . -- 右のリスト
+  op mergesort : List -> List .
+  op merge : List List -> List .
+  op split : List -> PairOfLists .
+  vars L1 L2 : List .
+
+  -- 変数
+  vars X Y : Elt.E . -- 要素
+  vars L : List . -- リスト
+
+  -- 等式
+  eq left(pair(L1, L2)) = L1 .
+  eq right(pair(L1, L2)) = L2 .
+  eq merge(nil, L2) = L2 . -- 空リストとリストのマージ
+  eq merge(L1, nil) = L1 . -- リストと空リストのマージ
+  eq merge(X | L1, Y | L2) =
+    if ord.E(X,Y) then { X | merge(L1, Y | L2) }
+    else { Y | merge(X | L1, L2) } . -- 右のリストの先頭要素が小さい場合
+  eq mergesort(nil) = nil . -- 空リストのソート
+  eq mergesort(X | nil) = X | nil . -- 1要素のリストのソート
+  eq mergesort(L) =
+    merge(mergesort(left(split(L))), mergesort(right(split(L)))) .
+  eq split(nil) = pair(nil, nil) .
+  eq split(X | nil) = pair(X | nil, nil) .
+  eq split(X | Y | L) = pair(X | left(split(L)), Y | right(split(L))) .
+}
+
+
+
 -- NATLIST7 Test(リネーミング)
 -- set trace on .
 open NATLIST7 .
@@ -337,6 +373,52 @@ close
 -- STRLIST1 Sort Test
 open GQSORT(E <= TRIV-ERR-ORD2STRLIST1) .
     red qsort(("CafeOBJ" | "Fortran" | slnil) |
+    ("Java" | "C" | "Fortran" | slnil) | ("Fortran" | slnil) |
+    ("C" | slnil) | slnil | ("CafeOBJ" | "CafeOBJ" | slnil) |
+    ("Java" | "C" | "CafeOBJ" | slnil) | ("CafeOBJ" | "C" | slnil) | nil) .
+close
+
+-- set trace on .
+open GMERGESORT(E <= TRIV-ERR-ORD2NAT-ERR) .
+red mergesort(nil) .
+red pair(nil,nil) .
+red left(pair(nil,nil)) .
+red mergesort(4 | nil) .
+red mergesort(5 | 4 | nil) .
+red mergesort(9 | 3 | nil) .
+red mergesort(1 | 2 | 3 | 4 | 5 | nil) .
+red mergesort(4 | 4 | 4 | 4 | nil) .
+red mergesort(9 | 1 | 6 | 3 | 8 | nil) .
+red mergesort(100 | 1 | 50 | 0 | 99 | 2 | nil) .
+close
+-- set trace off .
+
+open GMERGESORT(E <= TRIV-ERR-ORD2STRING-ERR) .
+    red mergesort("B" | "A" | "Z" | "C" | "D" | "Y" | "X" | "N" | nil) .
+    red mergesort("Lisp" | "Python" | "Pascal" | "CafeOBJ" | "C" |
+    "Java" | "Prolog" | "Fortran" | nil) .
+    
+close
+
+open GMERGESORT(E <= TRIV-ERR-ORD2NATLIST9) .
+    red mergesort((1 | 2 | nlnil) | (3 | 0 | 2 | nlnil) | (2 | nlnil) |
+    (0 | nlnil) | nlnil | (1 | 1 | nlnil) | (3 | 0 | 1 | nlnil) |
+    (1 | 0 | nlnil) | nil) .
+close
+
+open GQSORT(E <= TRIV-ERR-ORD2STRLIST1) .
+    red qsort(( "A" | "B" | slnil ) | ( "B" | "C" | slnil ) | ( "C" | "D" | slnil ) | ( "D" | "E" | slnil ) | nil) .
+    red qsort (("A" | "Z" | slnil) | ("A" | "B" | slnil) | ("B" | "C" | slnil) | ("C" | "D" | slnil) | nil) .
+    red qsort(("CafeOBJ" | "Fortran" | slnil) |
+    ("Java" | "C" | "Fortran" | slnil) | ("Fortran" | slnil) |
+    ("C" | slnil) | slnil | ("CafeOBJ" | "CafeOBJ" | slnil) |
+    ("Java" | "C" | "CafeOBJ" | slnil) | ("CafeOBJ" | "C" | slnil) | nil) .
+close
+
+open GMERGESORT(E <= TRIV-ERR-ORD2STRLIST1) .
+    red mergesort(("A" | "B" | slnil) | ( "B" | "C" | slnil ) | ( "C" | "D" | slnil ) | ( "D" | "E" | slnil ) | nil) .
+    red mergesort(("A" | "Z" | slnil) | ("A" | "B" | slnil) | ("B" | "C" | slnil) | ("C" | "D" | slnil) | nil) .
+    red mergesort(("CafeOBJ" | "Fortran" | slnil) |
     ("Java" | "C" | "Fortran" | slnil) | ("Fortran" | slnil) |
     ("C" | slnil) | slnil | ("CafeOBJ" | "CafeOBJ" | slnil) |
     ("Java" | "C" | "CafeOBJ" | slnil) | ("CafeOBJ" | "C" | slnil) | nil) .

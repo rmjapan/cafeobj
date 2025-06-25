@@ -1,3 +1,35 @@
+
+mod! NATLIST {
+    pr(NAT-ERR)
+    [Nil NnNatList < NatList] -- 包含関係で空リスト,非空リスト,リストを定義
+    op nil : -> Nil {constr} . -- 空リスト
+    op _|_ : Nat NatList -> NnNatList {constr} . -- 任意のリストに自然数を追加したリストは,非空リストの要素
+    -- hd:リストの先頭要素を取り出す.
+    op hd : Nil -> ErrNat . -- 空リストの先頭要素はErrNat
+    op hd : NnNatList -> Nat . -- 非空リストの先頭要素は自然数
+    op hd : NatList -> Nat&Err . -- リストの先頭要素は,自然数とErrNatのスーパーソートの要素
+    -- tl:先頭以外のリスト
+    op tl : NatList -> NatList . 
+    -- _@_:リストの結合
+    op _@_ : NatList NatList -> NatList .
+    -- [_.._]:XとYまでの自然数リスト[X..Y]みたいな
+    op [_.._] : Nat Nat -> NatList .
+    -- 条件分岐 if Book then Natlist else NatList -> NatList
+    op if_then {_} else {_} : Bool NatList NatList -> NatList .
+    -- 変数
+    vars X Y : Nat .
+    vars L L2 : NatList .
+    -- 等式
+    eq hd(nil) = errNat .
+    eq hd(X | L) = X .
+    eq tl(nil) = nil .
+    eq tl(X | L) = L .
+    eq nil @ L2 = L2 .
+    eq (X | L) @ L2 = X | (L @ L2) . -- 結合則
+    eq if true then {L} else {L2} = L .
+    eq if false then {L} else {L2} = L2 .
+    eq [X .. Y] = if X > Y then {nil} else {X | [X + 1 .. Y]} . -- 再帰的
+}
 mod! MERGESORT {
   pr(NATLIST)
   [PairOfLists]
