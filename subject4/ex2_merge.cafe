@@ -1,4 +1,4 @@
-reset
+
 mod* TRIV-ERR { 
     [Elt Err < Elt&Err]
     op err : -> Err .
@@ -40,44 +40,14 @@ mod! NAT-ERR {
     eq NE quo errNat = errNat .
     eq errNat quo NE = errNat .
 }
-view TRIV2NAT from TRIV to NAT {
-    sort Elt -> Nat,
-}
+
 view TRIV-ERR2NAT-ERR from TRIV-ERR to NAT-ERR {
     sort Elt -> Nat,
     sort Err -> ErrNat,
     sort Elt&Err -> Nat&Err,
     op err -> errNat,
 }
-mod! GLIST1(E :: TRIV) {
-    [Nil NnList < List] -- Order Sorts
-    op nil : -> Nil {constr} .
-    op _|_ : Elt.E List -> NnList {constr} . -- 非空リスト
-    op _@_ : List  List -> List . -- concat
-    var X : Elt.E .
-    vars L L2 : List .
-    eq nil @ L2 = L2 .
-    eq (X | L) @ L2 = X | (L @ L2) .
-}
-mod! GLIST2(E :: TRIV-ERR) {
-    [Nil NnList < List] -- Order Sorts
-    op nil : -> Nil {constr} .
-    op _|_ : Elt.E List -> NnList {constr} . -- 非空リスト
-    op _@_ : List  List -> List . -- concat
-    op hd : Nil -> Err.E . -- 空リストの先頭要素はErr型
-    op hd : NnList -> Elt.E . -- 非空リストの先頭要素は何でも型
-    op hd : List -> Elt&Err.E .
-    op tl : List -> List .
-    var X : Elt.E .
-    vars L L2 : List .
-    eq nil @ L2 = L2 .
-    eq (X | L) @ L2 = X | (L @ L2) .
-    eq hd(nil) = err.E .
-    eq hd(X | L) = X .
-    eq tl(nil) = nil .
-    eq tl(X | L) = L .
 
-}
 mod! GLIST-ERR(E :: TRIV-ERR) {
     -- OrderSorts
     [Nil NnList < List]
@@ -180,51 +150,8 @@ mod! GLIST-ERR-ORD(E :: TRIV-ERR-ORD) {
     eq ord(X | L,Y | L2) = ord.E(X,Y) or  ((not ord.E(Y,X)) and ord(L,L2)) .
 }
 
-mod! NATLIST1 {
-    pr(GLIST1(E <= TRIV2NAT))
-}
-mod! NATLIST2 {
-    pr(GLIST2(E <= TRIV-ERR2NAT-ERR))
-}
-mod! NATLIST7 {
-    pr(GLIST2(E <= TRIV-ERR2NAT-ERR)
-    *{
-        sort List -> NatList,
-        sort Nil -> NLNil,
-        sort NnList -> NnNatList,
-        op nil -> nlnil
-     }
-    )
-}
-mod! NATLIST8 {
-    pr(GLIST-ERR(E <= TRIV-ERR2NAT-ERR)
-    *{
-        sort List -> NatList,
-        sort Nil -> NLNil,
-        sort NnList -> NnNatList,
-        sort ErrList -> ErrNatList,
-        sort List&Err -> NatList&Err,
-        op nil -> nlnil,
-        op errList -> errNatList
-        }
-        )
-}
-view TRIV-ERR2NATLIST8 from TRIV-ERR to NATLIST8 {
-    sort Elt -> NatList,           
-    sort Err -> ErrNatList,        
-    sort Elt&Err -> NatList&Err,   
-    op err -> errNatList,          
-}
-mod! NATLISTLIST1 {
-    pr(GLIST-ERR(E <= TRIV-ERR2NATLIST8)
-       * {sort List -> NatListList,          
-          sort Nil -> NLLNil,                 
-          sort NnList -> NnNatListList,       
-          sort ErrList -> ErrNatListList,     
-          sort List&Err -> NatListList&Err,   
-          op nil -> nllnil,                   
-          op errList -> errNatListList } )    
-}
+
+
 view TRIV-ERR-ORD2NAT-ERR from TRIV-ERR-ORD to NAT-ERR {
     sort Elt -> Nat,
     sort Err -> ErrNat,
@@ -270,23 +197,6 @@ view TRIV-ERR-ORD2STRLIST1 from TRIV-ERR-ORD to STRLIST1 {
     op err -> errStrList,
     op ord -> ord,
 }
-mod! GQSORT(E :: TRIV-ERR-ORD) {
-    pr(GLIST-ERR(E))
-    -- signature
-    op qsort : List -> List . -- i:List, o:List
-    op partition : Elt.E List List List -> List . -- pivot:Elt.E, L:List, LL:List, RL:List
-    -- vars
-    vars X Y : Elt.E .
-    vars L LL RL : List .
-    -- eq
-    eq qsort(nil) = nil .
-    eq qsort(X | nil) = X | nil .
-    eq qsort(X | Y | L) = partition(X,Y | L,nil,nil) .
-    eq partition(X,nil,LL,RL) = qsort(LL) @ (X | qsort(RL)) .
-    eq partition(X,Y | L,LL,RL) = if ord.E(Y,X) then {partition(X,L,Y | LL,RL)}
-    else {partition(X,L,LL,Y | RL)} .
-}
-
 
 mod! GMERGESORT(E :: TRIV-ERR-ORD) {
   pr(GLIST-ERR(E)) -- エラーを含むリスト機能
@@ -312,7 +222,7 @@ mod! GMERGESORT(E :: TRIV-ERR-ORD) {
   eq merge(L1, nil) = L1 . -- リストと空リストのマージ
   eq merge(X | L1, Y | L2) =
     if ord.E(X,Y) then { X | merge(L1, Y | L2) }
-    else { Y | merge(X | L1, L2) } . -- 右のリストの先頭要素が小さい場合
+    else { Y | merge(X | L1, L2) } . 
   eq mergesort(nil) = nil . -- 空リストのソート
   eq mergesort(X | nil) = X | nil . -- 1要素のリストのソート
   eq mergesort(L) =
@@ -324,100 +234,28 @@ mod! GMERGESORT(E :: TRIV-ERR-ORD) {
 
 
 
--- NATLIST7 Test(リネーミング)
--- set trace on .
-open NATLIST7 .
-    red nlnil .
-    red hd(nlnil) .
-    red tl(nlnil) .
-    red tl((4 | 3 | nlnil) @ (2 | 1 | 0 | nlnil)) .
-    red (0 | 2 | nlnil) .
-    red (0 | nlnil) @ (0 | 2 | nlnil) .
-    red (4 | 3 | nlnil) @ (2 | 1 | 0 | nlnil) .
-close
--- set trace off .
 
--- NATLIST8 Test 
-open NATLIST8 .
-    red hd(nlnil) .
-    red hd((4 | 3 | nlnil) @ (2 | 1 | 0 | nlnil)) .
-    red tl(nlnil) .
-    red tl((4 | 3 | nlnil) @ (2 | 1 | 0 | nlnil)) .
-close
-
--- NATLISTLIST1 Test
-open NATLISTLIST1 .
-    red hd(nllnil) .
-    red hd((4 | 3 | nlnil) | (2 | 1 | 0 | nlnil) | nllnil) .
-    red tl(nllnil) .
-    red tl((4 | 3 | nlnil) | (2 | 1 | 0 | nlnil) | nllnil) .
-close
-
-open GQSORT(E <= TRIV-ERR-ORD2NAT-ERR) .
-    red qsort(4 | 7 | 5 | 1 | 0 | 3 | 6 | 2 | nil) .
-close
-
--- STRSORT Test
-open GQSORT(E <= TRIV-ERR-ORD2STRING-ERR) .
-    red qsort("Lisp" | "Python" | "Pascal" | "CafeOBJ" | "C" |
-    "Java" | "Prolog" | "Fortran" | nil) .
-close
-
--- NATLIST9 Test
-open GQSORT(E <= TRIV-ERR-ORD2NATLIST9) .
-    red qsort((1 | 2 | nlnil) | (3 | 0 | 2 | nlnil) | (2 | nlnil) |
-    (0 | nlnil) | nlnil | (1 | 1 | nlnil) | (3 | 0 | 1 | nlnil) |
-    (1 | 0 | nlnil) | nil) .
-close
-
--- STRLIST1 Sort Test
-open GQSORT(E <= TRIV-ERR-ORD2STRLIST1) .
-    red qsort(("CafeOBJ" | "Fortran" | slnil) |
-    ("Java" | "C" | "Fortran" | slnil) | ("Fortran" | slnil) |
-    ("C" | slnil) | slnil | ("CafeOBJ" | "CafeOBJ" | slnil) |
-    ("Java" | "C" | "CafeOBJ" | slnil) | ("CafeOBJ" | "C" | slnil) | nil) .
-close
-
--- set trace on .
+-- 自然数リストのソート
 open GMERGESORT(E <= TRIV-ERR-ORD2NAT-ERR) .
-red mergesort(nil) .
-red pair(nil,nil) .
-red left(pair(nil,nil)) .
-red mergesort(4 | nil) .
-red mergesort(5 | 4 | nil) .
-red mergesort(9 | 3 | nil) .
-red mergesort(1 | 2 | 3 | 4 | 5 | nil) .
-red mergesort(4 | 4 | 4 | 4 | nil) .
-red mergesort(9 | 1 | 6 | 3 | 8 | nil) .
-red mergesort(100 | 1 | 50 | 0 | 99 | 2 | nil) .
+    red mergesort(4 | 7 | 5 | 1 | 0 | 3 | 6 | 2 | nil) .
 close
 -- set trace off .
 
+-- 文字列のソート
 open GMERGESORT(E <= TRIV-ERR-ORD2STRING-ERR) .
-    red mergesort("B" | "A" | "Z" | "C" | "D" | "Y" | "X" | "N" | nil) .
     red mergesort("Lisp" | "Python" | "Pascal" | "CafeOBJ" | "C" |
     "Java" | "Prolog" | "Fortran" | nil) .
-    
 close
 
+-- 自然数リストのソート
 open GMERGESORT(E <= TRIV-ERR-ORD2NATLIST9) .
     red mergesort((1 | 2 | nlnil) | (3 | 0 | 2 | nlnil) | (2 | nlnil) |
     (0 | nlnil) | nlnil | (1 | 1 | nlnil) | (3 | 0 | 1 | nlnil) |
     (1 | 0 | nlnil) | nil) .
 close
 
-open GQSORT(E <= TRIV-ERR-ORD2STRLIST1) .
-    red qsort(( "A" | "B" | slnil ) | ( "B" | "C" | slnil ) | ( "C" | "D" | slnil ) | ( "D" | "E" | slnil ) | nil) .
-    red qsort (("A" | "Z" | slnil) | ("A" | "B" | slnil) | ("B" | "C" | slnil) | ("C" | "D" | slnil) | nil) .
-    red qsort(("CafeOBJ" | "Fortran" | slnil) |
-    ("Java" | "C" | "Fortran" | slnil) | ("Fortran" | slnil) |
-    ("C" | slnil) | slnil | ("CafeOBJ" | "CafeOBJ" | slnil) |
-    ("Java" | "C" | "CafeOBJ" | slnil) | ("CafeOBJ" | "C" | slnil) | nil) .
-close
-
+-- 文字列リストのソート
 open GMERGESORT(E <= TRIV-ERR-ORD2STRLIST1) .
-    red mergesort(("A" | "B" | slnil) | ( "B" | "C" | slnil ) | ( "C" | "D" | slnil ) | ( "D" | "E" | slnil ) | nil) .
-    red mergesort(("A" | "Z" | slnil) | ("A" | "B" | slnil) | ("B" | "C" | slnil) | ("C" | "D" | slnil) | nil) .
     red mergesort(("CafeOBJ" | "Fortran" | slnil) |
     ("Java" | "C" | "Fortran" | slnil) | ("Fortran" | slnil) |
     ("C" | slnil) | slnil | ("CafeOBJ" | "CafeOBJ" | slnil) |
