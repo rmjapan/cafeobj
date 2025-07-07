@@ -1,0 +1,75 @@
+**
+** MODULE BOOL
+**
+** Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions
+** are met:
+**
+**   * Redistributions of source code must retain the above copyright
+**     notice, this list of conditions and the following disclaimer.
+**
+**   * Redistributions in binary form must reproduce the above
+**     copyright notice, this list of conditions and the following
+**     disclaimer in the documentation and/or other materials
+**     provided with the distribution.
+**
+** THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+** OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+** ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+** DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+** GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+** INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+** WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+** NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**
+** 
+** we don't want to include BOOL of course
+evq (setq *include-bool-save* *include-bool*)
+evq (setq *include-bool* nil)
+-- set include BOOL off
+
+sys:mod! BOOL
+      principal-sort Bool
+{
+  imports {
+    protecting (BASE-BOOL)
+  }
+  axioms {
+    var A : Bool
+    var B : Bool
+    var C : Bool
+    eq false and A = false .
+    eq true and A = A .
+    eq A and A = A .
+    eq A xor A = false .
+    eq false xor A = A .
+    eq A and (B xor C) = A and B xor A and C .
+    eq A or A = A .
+    eq false or A = A .
+    eq true or A = true .
+    eq A or B = A and B xor A xor B .
+    eq not A = A xor true .
+    eq A implies B = A and B xor A xor true .
+    eq A iff B = A xor B xor true .
+    eq A and-also false = false .
+    eq false and-also A = false .
+    eq A and-also true = A .
+    eq true and-also A = A .
+    eq A and-also A = A .
+    eq false or-else A = A .
+    eq A or-else false = A .
+    eq true or-else A = true .
+    eq A or-else true = true .
+  }
+}
+
+evq (setq *include-bool* *include-bool-save*)
+protect BOOL
+provide sys_bool
+--
+eof

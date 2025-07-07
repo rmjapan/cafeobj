@@ -1,0 +1,60 @@
+**
+** MODULE BASE-BOOL
+**
+**
+** Copyright (c) 2000-2017, Toshimi Sawada. All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions
+** are met:
+**
+**   * Redistributions of source code must retain the above copyright
+**     notice, this list of conditions and the following disclaimer.
+**
+**   * Redistributions in binary form must reproduce the above
+**     copyright notice, this list of conditions and the following
+**     disclaimer in the documentation and/or other materials
+**     provided with the distribution.
+**
+** THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+** OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+** ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+** DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+** GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+** INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+** WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+** NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**
+**
+evq (setq *include-bool-save* *include-bool*)
+require truth
+
+set include BOOL off
+
+sys:mod* BASE-BOOL
+     principal-sort Bool
+{
+  imports {
+    protecting (TRUTH)
+    protecting (EQL)
+  }
+  signature {
+    op _and_ : Bool Bool -> Bool { assoc comm prec: 55 r-assoc }
+    op _and-also_ : Bool Bool -> Bool { strat: (1 0 2 0) prec: 55 r-assoc }
+    op _or_ : Bool Bool -> Bool { assoc comm prec: 59 r-assoc }
+    op _or-else_ : Bool Bool -> Bool { strat: (1 0 2 0) prec: 59 r-assoc }
+    op _xor_ : Bool Bool -> Bool { assoc comm prec: 57 r-assoc }
+    op not_ : Bool -> Bool { strat: (0 1) prec: 53 }
+    op _implies_ : Bool Bool -> Bool { strat: (0 1 2) prec: 61 r-assoc }
+    op _iff_ : Bool Bool -> Bool { strat: (0 1 2) prec: 63 r-assoc }
+  }
+}
+
+evq (setq *include-bool* *include-bool-save*)
+protect BASE-BOOL
+provide base_bool
+--
+eof

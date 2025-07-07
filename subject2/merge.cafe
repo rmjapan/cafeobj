@@ -1,0 +1,70 @@
+
+mod! NATLIST {
+    pr(NAT-ERR)
+    [Nil NnNatList < NatList] -- 包含関係で空リスト,非空リスト,リストを定義
+    op nil : -> Nil {constr} . -- 空リスト
+    op _|_ : Nat NatList -> NnNatList {constr} . -- 任意のリストに自然数を追加したリストは,非空リストの要素
+    -- hd:リストの先頭要素を取り出す.
+    op hd : Nil -> ErrNat . -- 空リストの先頭要素はErrNat
+    op hd : NnNatList -> Nat . -- 非空リストの先頭要素は自然数
+    op hd : NatList -> Nat&Err . -- リストの先頭要素は,自然数とErrNatのスーパーソートの要素
+    -- tl:先頭以外のリスト
+    op tl : NatList -> NatList . 
+    -- _@_:リストの結合
+    op _@_ : NatList NatList -> NatList .
+    -- [_.._]:XとYまでの自然数リスト[X..Y]みたいな
+    op [_.._] : Nat Nat -> NatList .
+    -- 条件分岐 if Book then Natlist else NatList -> NatList
+    op if_then {_} else {_} : Bool NatList NatList -> NatList .
+    -- 変数
+    vars X Y : Nat .
+    vars L L2 : NatList .
+    -- 等式
+    eq hd(nil) = errNat .
+    eq hd(X | L) = X .
+    eq tl(nil) = nil .
+    eq tl(X | L) = L .
+    eq nil @ L2 = L2 .
+    eq (X | L) @ L2 = X | (L @ L2) . -- 結合則
+    eq if true then {L} else {L2} = L .
+    eq if false then {L} else {L2} = L2 .
+    eq [X .. Y] = if X > Y then {nil} else {X | [X + 1 .. Y]} . -- 再帰的
+}
+mod! MERGESORT {
+  pr(NATLIST)
+  [PairOfLists]
+  op pair : NatList NatList -> PairOfLists {constr} .
+  op left : PairOfLists -> NatList .
+  op right : PairOfLists -> NatList .
+  eq left(pair(L1, L2)) = L1 .
+  eq right(pair(L1, L2)) = L2 .
+  op mergesort : NatList -> NatList .
+  op merge : NatList NatList -> NatList .
+  op split : NatList -> PairOfLists .
+  vars L1 L2 : NatList .
+  vars X Y : Nat .
+  vars L : NatList .
+  eq merge(nil, L2) = L2 .
+  eq merge(L1, nil) = L1 .
+  eq merge(X | L1, Y | L2) =
+    if X < Y then { X | merge(L1, Y | L2) }
+    else { Y | merge(X | L1, L2) } .
+  eq mergesort(nil) = nil .
+  eq mergesort(X | nil) = X | nil .
+  eq mergesort(L) =
+    merge(mergesort(left(split(L))), mergesort(right(split(L)))) .
+  eq split(nil) = pair(nil, nil) .
+  eq split(X | nil) = pair(X | nil, nil) .
+  eq split(X | Y | L) = pair(X | left(split(L)), Y | right(split(L))) .
+}
+open MERGESORT .
+red mergesort(nil) .
+red mergesort(4 | nil) .
+red mergesort(5 | 4 | nil) .
+red mergesort(9 | 3 | nil) .
+red mergesort(1 | 2 | 3 | 4 | 5 | nil) .
+red mergesort(4 | 4 | 4 | 4 | nil) .
+red mergesort(9 | 1 | 6 | 3 | 8 | nil) .
+red mergesort(100 | 1 | 50 | 0 | 99 | 2 | nil) .
+
+close

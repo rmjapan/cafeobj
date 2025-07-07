@@ -1,0 +1,80 @@
+**
+** NZNAT
+**
+**
+** Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions
+** are met:
+**
+**   * Redistributions of source code must retain the above copyright
+**     notice, this list of conditions and the following disclaimer.
+**
+**   * Redistributions in binary form must reproduce the above
+**     copyright notice, this list of conditions and the following
+**     disclaimer in the documentation and/or other materials
+**     provided with the distribution.
+**
+** THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+** OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+** ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+** DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+** GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+** INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+** WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+** NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**
+
+sys:mod! NZNAT
+     principal-sort NzNat
+{
+  imports {
+    protecting (NZNAT-VALUE)
+    protecting (BOOL)
+  }
+  signature {
+    op _ + _ : NzNat NzNat -> NzNat { assoc comm demod prec: 33 r-assoc }
+    op d : NzNat NzNat -> NzNat { comm demod prec: 0 }
+    op _ * _ : NzNat NzNat -> NzNat { assoc comm idr: 1 demod prec: 31 r-assoc }
+    op _ quot _ : NzNat NzNat -> NzNat { demod prec: 31 l-assoc }
+    pred _ < _ : NzNat NzNat  { demod prec: 51 }
+    pred _ <= _ : NzNat NzNat  { demod prec: 51 }
+    pred _ > _ : NzNat NzNat  { demod prec: 51 }
+    pred _ >= _ : NzNat NzNat  { demod prec: 51 }
+    op s _ : NzNat -> NzNat { demod prec: 15 }
+  }
+  axioms {
+    var NN : NzNat
+    var NM : NzNat
+    eq [:BDEMOD]: (NN + NM) = #! (+ nn nm) .
+    eq [:BDEMOD]: d(NN,NM) = #! (if (= nn nm) 1 (abs (- nn nm))) .
+    eq [:BDEMOD]: (NN * NM) = #! (* nn nm) .
+    eq [:BDEMOD]: (NN quot NM) = #! (if (> nn nm) (truncate nn nm) 1) .
+    eq [:BDEMOD]: (NN < NM) = #! (< nn nm) .
+    eq [:BDEMOD]: (NN <= NM) = #! (<= nn nm) .
+    eq [:BDEMOD]: (NN > NM) = #! (> nn nm) .
+    eq [:BDEMOD]: (NN >= NM) = #! (>= nn nm) .
+    eq [:BDEMOD]: (s NN) = #! (1+ nn) .
+  }
+}
+
+lispq
+(when (fboundp 'chaos-nznat-tram-interface) (fmakunbound 'chaos-nznat-tram-interface))
+
+lispq
+(defun chaos-nznat-tram-interface ()
+  (setq *z-nznat* (get-z-module-or-panic "NZNAT"))
+  (pushnew *z-nznat* *tram-builtin-modules*))
+
+lispq
+(eval-when (:execute :load-toplevel)
+  (chaos-nznat-tram-interface))
+
+protect NZNAT
+provide nznat
+--
+eof

@@ -1,0 +1,84 @@
+**
+** Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions
+** are met:
+**
+**   * Redistributions of source code must retain the above copyright
+**     notice, this list of conditions and the following disclaimer.
+**
+**   * Redistributions in binary form must reproduce the above
+**     copyright notice, this list of conditions and the following
+**     disclaimer in the documentation and/or other materials
+**     provided with the distribution.
+**
+** THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+** OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+** ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+** DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+** GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+** INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+** WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+** NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**
+sys:mod! INT
+      principal-sort Int
+{
+  imports {
+    protecting (NAT)
+    protecting (INT-VALUE)
+  }
+  signature {
+    pred _ divides _ : NzInt Int  { demod prec: 51 }
+    op _ rem _ : Int NzInt -> Int { demod prec: 31 }
+    op _ quo _ : Int NzInt -> Int { demod prec: 31 }
+    op _ + _ : Int Int -> Int { assoc comm idr: 0 demod prec: 33 }
+    op _ * _ : Int Int -> Int { assoc comm idr: 1 demod prec: 31 }
+    pred _ < _ : Int Int  { demod prec: 51 }
+    pred _ <= _ : Int Int  { demod prec: 51 }
+    pred _ > _ : Int Int  { demod prec: 51 }
+    pred _ >= _ : Int Int  { demod prec: 51 }
+    op s _ : Int -> Int { strat: (0 1) demod prec: 15 }
+    op _ - _ : Int Int -> Int { strat: (0 1 2) demod prec: 33 r-assoc }
+    op - _ : Int -> Int { demod prec: 15 }
+    op - _ : NzInt -> NzInt { demod prec: 15 }
+  }
+  axioms {
+    var I : Int
+    var J : Int
+    var NJ : NzInt
+    eq [:BDEMOD]: (- I) = #! (- i) .
+    eq [:BDEMOD]: (I + J) = #! (+ i j) .
+    eq [:BDEMOD]: (I - J) = (I + (- J)) .
+    eq [:BDEMOD]: (I * J) = #! (* i j) .
+    eq [:BDEMOD]: (I quo NJ) = #! (truncate i nj) .
+    eq [:BDEMOD]: (I rem NJ) = #! (rem i nj) .
+    eq [:BDEMOD]: (NJ divides I) = #! (= 0 (rem i nj)) .
+    eq [:BDEMOD]: (I < J) = #! (< i j) .
+    eq [:BDEMOD]: (I <= J) = #! (<= i j) .
+    eq [:BDEMOD]: (I > J) = #! (> i j) .
+    eq [:BDEMOD]: (I >= J) = #! (>= i j) .
+    eq [:BDEMOD]: (s I) = (1 + I) .
+  }
+}
+
+lispq
+(when (fboundp 'chaos-int-tram-interface) (fmakunbound 'chaos-int-tram-interface))
+
+lispq
+(defun chaos-int-tram-interface ()
+  (setq *z-int* (get-z-module-or-panic "INT"))
+  (push *z-int* *tram-builtin-modules*))
+
+lispq
+(eval-when (:execute :load-toplevel)
+  (chaos-int-tram-interface))
+
+provide int
+protect INT
+--
+eof

@@ -1,0 +1,102 @@
+** -*- Mode:CafeOBJ -*-
+** system: Chaos
+** module: library
+** file: identical.mod
+**
+** Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions
+** are met:
+**
+**   * Redistributions of source code must retain the above copyright
+**     notice, this list of conditions and the following disclaimer.
+**
+**   * Redistributions in binary form must reproduce the above
+**     copyright notice, this list of conditions and the following
+**     disclaimer in the documentation and/or other materials
+**     provided with the distribution.
+**
+** THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+** OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+** ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+** DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+** GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+** INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+** WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+** NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**
+** -------------------------------------------------------------
+
+--
+-- NOTE: You may need to modify `setup-identical' if you change
+--       the definition of module IDENTICAL
+--
+lispq
+(when (fboundp 'setup-identical) (fmakunbound 'chaos-float-tram-interface))
+
+lispq
+(defun setup-identical ()
+  (let ((id-opinfo nil)
+	(nid-opinfo nil))
+    (setf *IDENTICAL-module* (eval-modexp "IDENTICAL"))
+    (with-in-module (*identical-module*)
+      (setf id-opinfo (find-operator '("_" "===" "_")
+				     2
+				     *identical-module*))
+      (setf *identical*
+	  (lowest-method* (car (opinfo-methods id-opinfo))))
+      (setf nid-opinfo (find-operator '("_" "=/==" "_") 2 *identical-module*))
+      (setf *nonidentical*
+	    (lowest-method* (car (opinfo-methods nid-opinfo))))
+      )))
+
+** allow using universal sorts
+set sys universal-sort on
+
+** we want to be very explicit here
+lispq
+(progn 
+  (setq *include-bool-save* *include-bool*)
+  (setq *include-bool* nil))
+
+**
+** IDENTICAL
+**
+sys:mod! IDENTICAL
+      principal-sort Bool
+{
+  imports {
+    protecting (BOOL)
+  }
+  signature {
+    pred _===_ : *Universal* *Universal* { strat: (0) prec: 51 }
+    pred _=/==_ : *Universal* *Universal* { strat: (0) prec: 51 }
+  }
+  axioms {
+    var XU : *Universal*
+    var YU : *Universal*
+    eq XU === YU = #!! (coerce-to-bool (term-is-similar? xu yu)) .
+    eq XU =/== YU = #!! (coerce-to-bool (not (term-is-similar? xu yu))) .
+  }
+}
+
+** setting up
+lispq
+(setup-identical)
+lispq
+(setup-tram-bool-modules)
+lispq
+(init-builtin-universal)
+**
+set sys universal-sort off
+lispq
+(setq *include-bool* *include-bool-save*)
+**
+protect IDENTICAL
+provide identical
+**
+eof

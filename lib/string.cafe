@@ -1,0 +1,95 @@
+**
+** Copyright (c) 2000-2015, Toshimi Sawada. All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions
+** are met:
+**
+**   * Redistributions of source code must retain the above copyright
+**     notice, this list of conditions and the following disclaimer.
+**
+**   * Redistributions in binary form must reproduce the above
+**     copyright notice, this list of conditions and the following
+**     disclaimer in the documentation and/or other materials
+**     provided with the distribution.
+**
+** THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+** OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+** ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+** DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+** DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+** GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+** INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+** WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+** NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**
+sys:mod! STRING principal-sort String
+{
+  protecting (NAT)
+  protecting (CHARACTER)
+  protecting (STRING-VALUE)
+  [ Nat < FindResult ]
+  op notFound : -> FindResult {ctor}
+  op _++_     : String String -> String 
+  op length   : String -> Nat
+  op substr   : String Nat Nat -> String
+  op find     : Character String Nat -> FindResult
+  op rfind    : Character String Nat -> FindResult
+  op string=  : String String -> Bool
+  op string<  : String String -> Bool
+  op string<= : String String -> Bool
+  op string>  : String String -> Bool
+  op string>= : String String -> Bool
+  op schar    : String Nat -> Character
+  op string   : Character -> String
+  op upcase   : String -> String
+  op downcase : String -> String
+  op capitalize : String -> String
+  op substring  : String Nat Nat -> String
+  op substring  : String Nat -> String
+  op rsubstring : String Nat -> String
+  **
+  var S : String
+  var S1 : String
+  var S2 : String
+  var C : Character
+  var N : Nat
+  var FROM : Nat
+  var TO : Nat
+  eq [:BDEMOD]: (S ++ S2) = #! (concatenate (quote string) s s2) .
+  eq [:BDEMOD]: string(C) = #! (string c) .
+  eq [:BDEMOD]: schar(S,N) = #! (schar s n) .
+  eq [:BDEMOD]: upcase(S) = #! (string-upcase s) .
+  eq [:BDEMOD]: downcase(S) = #! (string-downcase s) .
+  eq [:BDEMOD]: capitalize(S) = #! (string-capitalize s) .
+  eq [:BDEMOD]: substring(S,FROM,TO) = #! (subseq s from to) .
+  eq [:BDEMOD]: substring(S,N) = #! (subseq s n) .
+  eq [:BDEMOD]: rsubstring(S,N) = #! (subseq s 0 n) .
+  eq [:BDEMOD]: length(S) = #! (length s) .
+  eq [:BDEMOD]: string=(S1,S2) = #! (string= s1 s2) .
+  eq [:BDEMOD]: string<(S1,S2) = #! (string< s1 s2) .
+  eq [:BDEMOD]: string>(S1,S2) = #! (string> s1 s2) .
+  eq [:BDEMOD]: string<=(S1,S2) = #! (string<= s1 s2) .
+  eq [:BDEMOD]: string>=(S1,S2) = #! (string>= s1 s2) .
+  eq find(C, S, N) = #!! (s-find C S N) .
+  eq rfind(C, S, N) = #!! (s-rfind C S N) .
+}
+
+lispq
+(when (fboundp 'chaos-string-tram-interface) (fmakunbound 'chaos-string-tram-interface))
+
+lispq
+(defun chaos-string-tram-interface ()
+  (setq *z-string* (get-z-module-or-panic "STRING"))
+  (push *z-string* *tram-builtin-modules*)
+  )
+
+lispq
+(eval-when (:execute :load-toplevel)
+  (chaos-string-tram-interface))
+
+protect STRING
+provide string
+** EOF
