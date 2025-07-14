@@ -1,0 +1,215 @@
+mod! NAT-TRIPLE-IMLM {
+    pr(NAT) 
+    [NatTriple]
+    op (_,_,_) : Nat Nat Nat -> NatTriple {constr} .
+    op 1st : NatTriple -> Nat {strat:(1 0)} . -- 最内戦略（引数から計算）
+    vars FE SE TE : Nat . 
+    eq 1st((FE, SE, TE)) = FE . -- 1stはNatTripleの最初の要素を返す
+}
+mod! NAT-TRIPLE-OMLM {
+    pr(NAT) 
+    [NatTriple]
+    op (_,_,_) : Nat Nat Nat -> NatTriple {constr} .
+    op 1st : NatTriple -> Nat {strat:(0 1 1)} . -- 最外戦略（引数の計算は必要なときに行う）
+    vars FE SE TE : Nat . 
+    eq 1st((FE, SE, TE)) = FE . -- 1stはNatTripleの最初の要素を返す
+}
+mod! NAT-IF {
+    pr(NAT) 
+    op if_then{_}else{_} : Bool Nat Nat -> Nat .
+    vars N1 N2 : Nat .
+    eq if true then {N1} else {N2} = N1 .
+    eq if false then {N1} else {N2} = N2 .  
+}
+mod! GLIST(E :: TRIV) {
+    [Nil NnList < List]
+    op nil : -> Nil {constr} . -- 空リスト
+    op _|_ : Elt.E List -> List {constr} .
+}
+mod! INF-LIST(E :: TRIV) {
+    pr(GLIST(E))
+    pr(NAT)
+    [InfList]
+    op _|_ : Elt.E InfList -> InfList {strat:(1 0)} . -- 無限リストの構築(最内戦略)
+    op take : InfList Nat -> List .
+    op drop : InfList Nat -> InfList . -- 無限リストから要素を取り除く
+    op _@_ : List InfList -> InfList . -- 無限リストに有限リストを追加
+    op zip : InfList InfList -> InfList . -- 無限リスト同士の要素を組み合わせる
+
+    vars X Y : Elt.E .
+    vars IL IL2 : InfList .
+    var NzN : NzNat .
+    var N : Nat .
+    var L : List .
+    eq take(IL, 0) = nil . -- 無限リストから0個の要素を取ると空リスト
+    eq take(X | IL, NzN) = X | take(IL, p NzN) . -- 無限リストからNzNat個の要素を取る
+    eq drop(IL, 0) = IL . -- 無限リストから0個の要素を取り除くと元のリスト
+    eq drop(X | IL, NzN) = drop(IL, p NzN) . -- 無限リストからNzNat個の要素を取り除く
+    eq nil @ IL = IL . -- 空リストに無限リストを追加すると無限リスト
+    eq (X | L) @ IL = X | (L @ IL) . -- (10|L) @ IL -> 10|(L @ IL)
+    eq zip(X | IL,Y | IL2) = X | Y | zip(IL, IL2) . -- 交互に要素を組み合わせる
+}
+mod! NAT-INF-LIST {
+    pr(INF-LIST(NAT))
+    op mkNILFrom : Nat -> InfList .
+    op if_then{_}else{_} : Bool InfList InfList -> InfList .
+    var N : Nat .
+    vars IL1 IL2 : InfList .
+    eq mkNILFrom(N) = N | mkNILFrom(N + 1) . -- 0から無限リストを作成
+    eq if true then {IL1} else {IL2} = IL1 . -- 真ならIL1、偽ならIL2を返す
+    eq if false then {IL1} else {IL2} = IL2 . -- 偽ならIL2を返す
+}
+mod! ERATOSTHENES-SIEVE {
+    pr(NAT-INF-LIST)
+    op primes : -> InfList .
+    op sieve : InfList -> InfList .
+    op check : Nat InfList -> InfList .
+    vars X Y : Nat .
+    var NzX : NzNat .
+    var IL : InfList .
+    eq primes = sieve(mkNILFrom(2)) . -- 2から始まる無限リストの素数を生成
+    eq sieve(X | IL) = X | sieve(check(X,IL)) . -- 素数Xをリストに追加し、残りのリストをチェック
+    eq check(0,IL) = IL . -- 0は素数ではないのでそのまま返す
+    eq check(NzX,Y | IL) = 
+        if NzX divides Y then {check(NzX,IL)} 
+        else {Y | check(NzX,IL)} . -- NzXで割り切れないYをリストに追加し、残りをチェック
+}
+
+mod! HAMMING {
+  pr(NAT-INF-LIST)
+  op ham  : -> InfList .
+  op 2*   : InfList -> InfList .
+  op 3*   : InfList -> InfList .
+  op 5*   : InfList -> InfList .
+  op merge : InfList InfList -> InfList .
+  vars X Y : Nat .
+  vars IL IL2 : InfList .
+  eq ham = 1 | merge(merge(2*(ham),3*(ham)),5*(ham)) .
+  eq 2*(X | IL) = 2 * X | 2*(IL) .
+  eq 3*(X | IL) = 3 * X | 3*(IL) .
+  eq 5*(X | IL) = 5 * X | 5*(IL) .
+  eq merge(X | IL,Y | IL2) =
+     if X < Y then {X | merge(IL,Y | IL2)}
+     else {if Y < X then {Y | merge(X | IL,IL2)}
+          else {X | merge(IL,IL2)}} .
+}
+mod! LOC {
+    [Loc]
+    ops rs ms cs : -> Loc {constr} . -- 待ち,実行,完了のロケーション
+}
+mod! STATE principal-sort State {
+    pr(LOC)
+    [State]
+    op (locked:_,pc1:_,pc2:_,pc3:_,pc4:_) : Bool Loc Loc Loc Loc -> State {constr} .
+}
+mod! TID {
+    [Tid]
+    ops t1 t2 t3 t4 : -> Tid {constr} .
+    op if_then{_}else{_} : Bool Tid Tid -> Tid .
+    vars T1 T2 : Tid .
+    eq if true then {T1} else {T2} = T1 .
+    eq if false then {T1} else {T2} = T2 .
+}
+mod! FMUTEX {
+    pr(STATE)
+    pr(TID)
+    op trans : State Tid -> State . -- 状態遷移
+    vars L1 L2 L3 L4 : Loc .
+    var B : Bool .
+    -- t1
+    eq trans((locked: true,pc1: rs,pc2: L2,pc3: L3,pc4: L4),t1)
+        = (locked: true,pc1: rs,pc2: L2,pc3: L3,pc4: L4) . -- lockがTrueのとき,rs状態から変化なし
+    eq trans((locked: false,pc1: rs,pc2: L2,pc3: L3,pc4: L4),t1)
+        = (locked: false,pc1: ms,pc2: L2,pc3: L3,pc4: L4) . -- lockがFalseのとき,rs->ms状態に変化
+    eq trans((locked: B,pc1: ms,pc2: L2,pc3: L3,pc4: L4),t1)
+        = (locked: true,pc1: cs,pc2: L2,pc3: L3,pc4: L4) . -- 任意のLock状態の時,ms->cs状態へ移行し、鍵をロック
+    eq trans((locked: B,pc1: cs,pc2: L2,pc3: L3,pc4: L4),t1)
+        = (locked: false,pc1: rs,pc2: L2,pc3: L3,pc4: L4) . -- 任意のLock状態の時,cs状態からrs状態へ戻り,鍵を解放
+    -- t2
+    eq trans((locked: true,pc1: L1,pc2: rs,pc3: L3,pc4: L4),t2)
+        = (locked: true,pc1: L1,pc2: rs,pc3: L3,pc4: L4) . -- lockがTrueのとき,rs状態から変化なし
+    eq trans((locked: false,pc1: L1,pc2: rs,pc3: L3,pc4: L4),t2)
+        = (locked: false,pc1: L1,pc2: ms,pc3: L3,pc4: L4) . -- lockがFalseのとき,rs->ms状態に変化
+    eq trans((locked: B,pc1: L1,pc2: ms,pc3: L3,pc4: L4),t2)
+        = (locked: true,pc1: L1,pc2: cs,pc3: L3,pc4: L4) . -- 任意のLock状態の時,ms->cs状態へ移行し、鍵をロック
+    eq trans((locked: B,pc1: L1,pc2: cs,pc3: L3,pc4: L4),t2)
+        = (locked: false,pc1: L1,pc2: rs,pc3: L3,pc4: L4) . -- 任意のLock状態の時,cs状態からrs状態へ戻り,鍵を解放
+    -- t3
+    eq trans((locked: true,pc1: L1,pc2: L2,pc3: rs,pc4: L4),t3)
+        = (locked: true,pc1: L1,pc2: L2,pc3: rs,pc4: L4) . -- lockがTrueのとき,rs状態から変化なし
+    eq trans((locked: false,pc1: L1,pc2: L2,pc3: rs,pc4: L4),t3)
+        = (locked: false,pc1: L1,pc2: L2,pc3: ms,pc4: L4) . -- lockがFalseのとき,rs->ms状態に変化
+    eq trans((locked: B,pc1: L1,pc2: L2,pc3: ms,pc4: L4),t3)
+        = (locked: true,pc1: L1,pc2: L2,pc3: cs,pc4: L4) . -- 任意のLock状態の時,ms->cs状態へ移行し、鍵をロック
+    eq trans((locked: B,pc1: L1,pc2: L2,pc3: cs,pc4: L4),t3)
+        = (locked: false,pc1: L1,pc2: L2,pc3: rs,pc4: L4) . -- 任意のLock状態の時,cs状態からrs状態へ戻り,鍵を解放
+    -- t4
+    eq trans((locked: true,pc1: L1,pc2: L2,pc3: L3,pc4: rs),t4)
+        = (locked: true,pc1: L1,pc2: L2,pc3: L3,pc4: rs) . -- lockがTrueのとき,rs状態から変化なし
+    eq trans((locked: false,pc1: L1,pc2: L2,pc3: L3,pc4: rs),t4)
+        = (locked: false,pc1: L1,pc2: L2,pc3: L3,pc4: ms) . -- lockがFalseのとき,rs->ms状態に変化
+    eq trans((locked: B,pc1: L1,pc2: L2,pc3: L3,pc4: ms),t4)
+        = (locked: true,pc1: L1,pc2: L2,pc3: L3,pc4: cs) . -- 任意のLock状態の時,ms->cs状態へ移行し、鍵をロック
+    eq trans((locked: B,pc1: L1,pc2: L2,pc3: L3,pc4: cs),t4)
+        = (locked: false,pc1: L1,pc2: L2,pc3: L3,pc4: rs) . -- 任意のLock状態の時,cs状態からrs状態へ戻り,鍵を解放
+}
+-- 状態の無限リスト
+mod! COMP {
+    pr(INF-LIST(STATE) * {
+        sort InfList -> Comp,
+        sort List -> FComp
+    }
+    )
+}
+open NAT .
+red(4 rem 3) .
+close
+mod! SCHED {
+  pr(NAT)
+  pr(INF-LIST(TID) * {sort InfList -> Sched} )
+  op sched : Nat -> Sched .
+  var N : Nat .
+eq sched(N) =
+         if (N rem 4 == 0)
+         then (t1 | sched(N quo 4))
+         else (if (N rem 4 == 1)
+                     then (t2 | sched(N quo 4))
+                     else (if (N rem 4 == 2)
+                                 then (t3 | sched(N quo 4))
+                                 else (t4 | sched(N quo 4))
+                                 fi)
+                     fi)
+         fi .
+}
+mod! SIM {
+  pr(FMUTEX)
+  pr(COMP)
+  pr(SCHED)
+  op sim      : State Nat   -> Comp  . 
+  op sub-sim  : State Sched -> Comp  .
+  vars S : State .    var N   : Nat .
+  var  T : Tid   .    var TIL : Sched .
+  eq sim(S, N)          = sub-sim(S, sched(N)) .
+  eq sub-sim(S, T | TIL) = S | sub-sim(trans(S, T), TIL) .
+  vars L1 L2 L3 L4 : Loc .   var B : Bool .
+  op mutex : State -> Bool .
+  eq mutex((locked: B, pc1: L1, pc2: L2, pc3: L3, pc4: L4))
+         = (not (L1 == cs and L2 == cs)) or (not (L1 == cs and L3 == cs)) or (not (L1 == cs and L4 == cs)) or (not (L2 == cs and L3 == cs)) or (not (L2 == cs and L4 == cs)) or (not (L3 == cs and L4 == cs)) . -- すべてのロケーションがcs状態でない場合はmutexがTrue
+  op sim-check     : State Nat Nat   -> FComp .
+  op sub-sim-check : State Sched Nat -> FComp .
+  var D   : Nat .   var NzD : NzNat .
+  eq sim-check(S, N, D)
+       = sub-sim-check(S, sched(N), D) .
+  eq sub-sim-check(S, T | TIL, 0) = S | nil .
+  eq sub-sim-check(S, T | TIL, NzD) =
+       if (mutex(S))
+       then (S | sub-sim-check(trans(S, T), TIL, p NzD))
+       else (S | nil)
+       fi .
+}
+
+open SIM .
+red sim-check((locked: false,pc1: rs,pc2: rs,pc3: rs,pc4: rs),123,10) .
+red sim-check((locked: false,pc1: rs,pc2: rs,pc3: rs,pc4: rs),1234,10) .
+red sim-check((locked: false,pc1: rs,pc2: rs,pc3: rs,pc4: rs),12345,10) .
+close
