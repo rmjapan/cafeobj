@@ -1,3 +1,10 @@
+--
+-- A Virtual Machine for Minila program
+--
+
+--
+-- An instruction set
+--
 mod! BOOL-ERR {
   pr(BOOL)
   [Bool ErrBool < Bool&Err]
@@ -273,49 +280,190 @@ mod! INTERPRET {
   else {0}
   } .
 }
+mod! INSTRUCT principal-sort Instruct {
+  pr(NAT)
+  pr(VAR)
+  [Instruct ErrInstruct < Instruct&Err]
+  op errInstruct : -> ErrInstruct {constr} .
+  op push : Nat -> Instruct {constr} .
+  op load : Var -> Instruct {constr} .
+  op store : Var -> Instruct {constr} .
+  op multiply : -> Instruct {constr} .
+  op divide : -> Instruct {constr} .
+  op mod : -> Instruct {constr} .
+  op add : -> Instruct {constr} .
+  op minus : -> Instruct {constr} .
+  op lessThan : -> Instruct {constr} .
+  op greaterThan : -> Instruct {constr} .
+  op equal : -> Instruct {constr} .
+  op notEqual : -> Instruct {constr} .
+  op and : -> Instruct {constr} .
+  op or : -> Instruct {constr} .
+  op jump : Nat -> Instruct {constr} .
+  op bjump : Nat -> Instruct {constr} .
+  op jumpOnCond : Nat -> Instruct {constr} .
+  op quit : -> Instruct {constr} .
+}
 
-open ENV .
-  ops x y : -> Var .
-  op env : -> Env .
-  eq env = update(update(empEnv,x,0),y,1) .
-  red env .
-  red errEnv .
-  red lookup(env,x) .
-  red lookup(env,y) .
-  red nth(env,1) .
-  red nth(env,2) .
-close
--- open EXP .
--- ops x y z : -> Var .
--- red x + y || x - z && y * z === x / y .
--- close
+view TRIV-ERR2INSTRUCT from TRIV-ERR to INSTRUCT {
+  sort Elt -> Instruct,
+  sort Err -> ErrInstruct,
+  sort Elt&Err -> Instruct&Err,
+  op err -> errInstruct
+}
 
-open INTERPRET .
-ops x y z : -> Var .
-op errNat : -> ErrNat .
-op env : -> Env .
-eq env = update(update(empEnv,x,20),y,4) .
-pr(NAT-ERR)
--- evalEXPのテスト
-red evalExp(x === y, env) .
-red evalExp(x + y, env) .
-red evalExp(x - y, env) .
-red evalExp(x * y, env) .
-red evalExp(x / y, env) .
-red evalExp(x % y, env) .
-red evalExp(x < y, env) .
-red evalExp(x > y, env) .
-red evalExp(x && y, env) .
-red evalExp(x || y, env) .
-red eval(x := n(10) ;, env) .
-red eval(x := n(10) ;, errEnv) .
-red eval(x := (y % n(0)) ;, env) .
-red lookup(env,x) .
-red lookup(env,y) .
-red eval(if x > y {z := x ;} else {z := y ;}, env) .
-red lookup(env,z) .
-red eval(while x > n(5) {x := x - n(10) ;}, env) .
-red eval(for x n(0) n(10) {y := y + n(1) ;}, env) .
-red lookup(env,x) .
+--
+-- An instruction sequence is represented as a list of instructions.
+--
+mod! ILIST {
+  pr(LIST(M <= TRIV-ERR2INSTRUCT)
+     * {sort List -> IList, op nil -> iln} )
+}
 
+--
+-- - Function vm takes an instruction sequence and returns the
+--   environment made by executing the instruction sequence.
+-- - Function exec takes an instruction sequence, a program pointe
+--   pointing to an instruction in the sequence, a stack, and an
+--   environment, and execute the instruction under the environment
+--   with the stack.
+-- - Function exec2 is an auxiliary function of exec.
+--
+--
+-- A stack is represented as a list of natural numbers.
+--
+
+view TRIV-ERR2NAT-ERR from TRIV-ERR to NAT-ERR {
+  sort Elt -> Nat,
+  sort Err -> ErrNat,
+  sort Elt&Err -> Nat&Err,
+  op err -> errNat
+}
+
+mod! STACK {
+  pr(LIST(M <= TRIV-ERR2NAT-ERR)
+     * {sort List -> Stack, op nil -> empstk} )
+  [Stack ErrStack < Stack&Err]
+  op errStack : -> ErrStack {constr} .
+  op _|_ : Nat&Err Stack&Err -> Stack&Err .
+  var S&E : Stack&Err .
+  var N&E : Nat&Err .
+  -- _|_
+  eq errNat | S&E = errStack .
+  eq N&E | errStack = errStack .
+}
+
+mod! VM {
+  pr(ILIST)
+  pr(ENV)
+  pr(STACK)
+  op run : IList -> Env&Err .
+  op exec : IList Nat Stack&Err Env&Err -> Env&Err .
+  op exec2 : Instruct&Err IList Nat Stack&Err Env&Err -> Env&Err .
+  var IL : IList . -- 命令列
+  var PC : Nat .
+  var Stk : Stack .
+  var Env : Env .
+  vars N N1 N2 : Nat .
+  var V : Var .
+  var E&E : Env&Err .
+  var S&E : Stack&Err .
+  var I&E : Instruct&Err .
+  -- run
+  eq run(IL) = exec(IL,0,empstk,empEnv) .
+  -- exec
+  eq exec(IL,PC,errStack,E&E) = errEnv .
+  eq exec(IL,PC,S&E,errEnv) = errEnv .
+  eq exec(IL,PC,Stk,Env) = exec2(nth(IL,PC),IL,PC,Stk,Env) .
+  -- exec2:PCが指す命令を実行する
+  eq exec2(push(N),IL,PC,Stk,Env) = exec(IL,PC + 1,N | Stk,Env) .
+  eq exec2(load(V),IL,PC,Stk,Env) = exec(IL,PC + 1,lookup(Env,V) | Stk,Env) .
+  eq exec2(store(V),IL,PC,N | Stk,Env) 
+  = exec(IL,PC + 1,Stk,update(Env,V,N)) .
+  eq exec2(add,IL,PC,empstk,Env) = errEnv .
+  eq exec2(add,IL,PC,N1 | empstk,Env) = errEnv .
+  eq exec2(add,IL,PC,N1 | N2 | Stk,Env)
+  = exec(IL,PC + 1,N1 + N2 | Stk,Env) .
+  eq exec2(minus,IL,PC,empstk,Env) = errEnv .
+  eq exec2(minus,IL,PC,N1 | empstk,Env) = errEnv .
+  eq exec2(minus,IL,PC,N1 | N2 | Stk,Env)
+  = exec(IL,PC + 1,sd(N1,N2) | Stk,Env) .
+  eq exec2(multiply,IL,PC,empstk,Env) = errEnv .
+  eq exec2(multiply,IL,PC,N1 | empstk,Env) = errEnv .
+  eq exec2(multiply,IL,PC,N1 | N2 | Stk,Env)
+  = exec(IL,PC + 1,N1 * N2 | Stk,Env) .
+  eq exec2(divide,IL,PC,empstk,Env) = errEnv .
+  eq exec2(divide,IL,PC,N1 | empstk,Env) = errEnv .
+  eq exec2(divide,IL,PC,N1 | N2 | Stk,Env)
+  = exec(IL,PC + 1,N1 quo N2 | Stk,Env) .
+  eq exec2(mod,IL,PC,empstk,Env) = errEnv .
+  eq exec2(mod,IL,PC,N1 | empstk,Env) = errEnv .
+  eq exec2(mod,IL,PC,N1 | N2 | Stk,Env)
+  = exec(IL,PC + 1,N1 rem N2 | Stk,Env) .
+  eq exec2(lessThan,IL,PC,empstk,Env) = errEnv .
+  eq exec2(lessThan,IL,PC,N1 | empstk,Env) = errEnv .
+  eq exec2(lessThan,IL,PC,N1 | N2 | Stk,Env)
+  = if (N1 < N2)
+  then {exec(IL,PC + 1,1 | Stk,Env)}
+  else {exec(IL,PC + 1,0 | Stk,Env)} .
+  eq exec2(greaterThan,IL,PC,empstk,Env) = errEnv .
+  eq exec2(greaterThan,IL,PC,N1 | empstk,Env) = errEnv .
+  eq exec2(greaterThan,IL,PC,N1 | N2 | Stk,Env)
+  = if (N1 > N2)
+  then {exec(IL,PC + 1,1 | Stk,Env)}
+  else {exec(IL,PC + 1,0 | Stk,Env)} .
+  eq exec2(equal,IL,PC,empstk,Env) = errEnv .
+  eq exec2(equal,IL,PC,N1 | empstk,Env) = errEnv .
+  eq exec2(equal,IL,PC,N1 | N2 | Stk,Env)
+  = if (N1 == N2)
+  then {exec(IL,PC + 1,1 | Stk,Env)}
+  else {exec(IL,PC + 1,0 | Stk,Env)} .
+  eq exec2(notEqual,IL,PC,empstk,Env) = errEnv .
+  eq exec2(notEqual,IL,PC,N1 | empstk,Env) = errEnv .
+  eq exec2(notEqual,IL,PC,N1 | N2 | Stk,Env)
+  = if not(N1 == N2)
+  then {exec(IL,PC + 1,1 | Stk,Env)}
+  else {exec(IL,PC + 1,0 | Stk,Env)} .
+  eq exec2(and,IL,PC,empstk,Env) = errEnv .
+  eq exec2(and,IL,PC,N1 | empstk,Env) = errEnv .
+  eq exec2(and,IL,PC,N1 | N2 | Stk,Env)
+  = if(not(N1 == 0) and not(N2 == 0))
+  then {exec(IL,PC + 1,1 | Stk,Env)}
+  else {exec(IL,PC + 1,0 | Stk,Env)} .
+  eq exec2(or,IL,PC,empstk,Env) = errEnv .
+  eq exec2(or,IL,PC,N1 | empstk,Env) = errEnv .
+  eq exec2(or,IL,PC,N1 | N2 | Stk,Env)
+  = if(not(N1 == 0) or not(N2 == 0))    
+  then {exec(IL,PC + 1,1 | Stk,Env)}
+  else {exec(IL,PC + 1,0 | Stk,Env)} .
+  eq exec2(jump(N),IL,PC,Stk,Env) = exec(IL,PC + N,Stk,Env) .
+  eq exec2(bjump(N),IL,PC,Stk,Env) = exec(IL,sd(PC,N),Stk,Env) .
+  eq exec2(jumpOnCond(N),IL,PC,empstk,Env) = errEnv .
+  eq exec2(jumpOnCond(N),IL,PC,N1 | Stk,Env)
+  = if (not(N1 == 0))
+  then {exec(IL,PC + N,Stk,Env)}
+  else {exec(IL,PC + 1,Stk,Env)} .
+  eq exec2(quit,IL,PC,Stk,Env) = Env .
+
+}
+
+
+
+
+open VM .
+  ops x y z : -> Var .
+  ops il1 il2 il3 il4 il5 : -> IList . -- 命令列
+  eq il1 = push(1) | store(x) | push(8) | store(y) | quit | iln .
+  red run(il1) .
+  eq il2 = push(1) | push(2) | add | store(x) | load(x) | load(x) | multiply | store(y) | quit | iln .
+  red run(il2) .
+  eq il3 = push(1) | push(2) | equal | jumpOnCond(4) | push(2) | store(x)
+  | jump(3) | push(1) | store(x) | quit | iln .
+  red run(il3) .
+  
+
+  eq il4 = push(1) | store(x) | push(2) | store (y) | load(y) | load(y) | multiply | store(y) | load(x) | push(2) | multiply | store(x) | push(16) | load(x) | equal | jumpOnCond(2) | bjump(12) | quit | iln .
+  red run(il4) .
+  eq il5 = push(1) | store(x) | push(2) | store (y) | load(y) | load(y) | multiply | store(y) | load(x) | push(2) | multiply | store(x) | push(64) | load(x) | equal | jumpOnCond(2) | bjump(12) | quit | iln .
+  red run(il5) .
 close
