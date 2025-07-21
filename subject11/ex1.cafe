@@ -1,0 +1,113 @@
+mod PNAT1 {
+    pr(BOOL)
+    [PNat]
+    op 0 : -> PNat {constr} .
+    op s : PNat -> PNat {constr} .
+    op _+_ : PNat PNat -> PNat .
+    op _*_ : PNat PNat -> PNat .
+    op fact1 : PNat -> PNat .
+    op fact2 : PNat -> PNat .
+    op sfact2 : PNat PNat -> PNat .
+    vars X Y Z : PNat .
+    eq (0 = s(Y)) = false .
+    eq (s(X) = s(Y)) = (X = Y) .
+    -- _+_
+    eq 0 + Y = Y .  -- (+1)
+    eq Y + 0 = Y .  -- (rz+)
+    eq s(X) + Y = s(X + Y) . -- (+2)
+    eq X + s(Y) = s(X + Y) . -- (rs+)
+    -- _*_
+    eq 0 * Y = 0 .  -- (*1)
+    eq s(X) * Y = (X * Y) + Y . -- (*2)
+    -- fact1
+    eq fact1(0) = s(0) .  -- (f1-1)
+    eq fact1(s(X)) = s(X) * fact1(X) .  -- (f1-2)
+    -- fact2
+    eq fact2(X) = sfact2(X,s(0)) .  -- (f2)
+    eq sfact2(0,Y) = Y .  -- (sf2-1)
+    eq sfact2(s(X),Y) = sfact2(X,s(X) * Y) .  -- (sf2-2)
+
+}
+"Theorem 1[_+_の結合律]
+X, Y, Zは任意のPNatとし、以下の結合律が成り立つことをXに対する構造帰納法で示す。
+（X +　Y) + Z = X + (Y + Z) .
+"
+"1:Base case(X=0の場合)"
+open PNAT1 .
+ops y z : -> PNat .
+-- fresh constants
+red (0 + y) + z = 0 + (y + z) . 
+close
+"2:Inductive step"
+open PNAT1 .
+-- fresh constants
+ops x y z : -> PNat .
+-- IH 帰納法の仮定
+eq (x + Y) + z = x + (Y + z) .  -- (IH)
+-- check
+red (s(x) + y) + z = s(x) + (y + z) .
+close
+"Theorem1の証明終了（End of Proof of Theorem1）"
+
+
+"Theorem 2[_+_の交換律]
+X, Yは任意のPNatとし、以下の交換律が成り立つことをXに対する構造帰納法で示す。
+X + Y = Y + X .
+"
+"1:Base case(X=0の場合)"
+open PNAT1 .
+op y : -> PNat .
+-- fresh constants
+red 0 + y = y + 0 .
+close
+"2:Inductive step"
+open PNAT1 .
+-- fresh constants
+ops x y : -> PNat .
+-- IH 帰納法の仮定
+eq x + y = y + x .  -- (IH)
+-- check
+red s(x) + y = y + s(x) .
+close
+"Theorem 2の証明終了（End of Proof of Theorem2）"
+
+
+"Lemma 1[Right Zero of _+_(rz+)]
+Xは任意のPNatとし、以下が成り立つことをXに対する構造帰納法で示す。
+X + 0 = X ."
+"1:Base case(X=0の場合)"
+open PNAT1 .
+-- check
+red 0 + 0 = 0 .
+close .
+"2:Inductive step"
+open PNAT1 .
+-- fresh constants
+op x : -> PNat .
+-- IH 帰納法の仮定
+eq x + 0 = x .  -- (IH)
+-- check
+red s(x) + 0 = s(x) .
+close
+"Lemma 1の証明終了（End of Proof of Lemma1）"
+
+"Lemma 2[Right successor of _+_(rs+)]
+X, Yは任意のPNatとし、以下が成り立つことをXに対する構造帰納法で示す。
+X + s(Y) = s(X + Y) ."
+"1:Base case(X=0の場合)"
+open PNAT1 .
+-- fresh constants
+op y : -> PNat .
+-- check
+red 0 + s(y) = s(0 + y) .
+close .
+"2:Inductive step"
+open PNAT1 .
+-- fresh constants
+ops x y : -> PNat .
+-- IH 帰納法の仮定
+eq x + s(y) = s(x + y) .  -- (IH)
+-- check
+red (s(x) + y) = s(x + y) .
+close
+"Lemma 2の証明終了（End of Proof of Lemma2）"

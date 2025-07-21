@@ -190,7 +190,8 @@ mod! INTERPRET {
   var N : Nat .
   var NzN : NzNat . 
   var NE : Nat&Err .
-  -- interpret
+  -- interpret                                      
+  eq interpret(S) = eval(S,empEnv) .
   -- eval
   eq eval(estm,EV) = EV .
   eq eval(S,errEnv) = errEnv .
@@ -291,7 +292,7 @@ close
 -- close
 
 open INTERPRET .
-ops x y z : -> Var .
+ops x y z tmp : -> Var .
 op errNat : -> ErrNat .
 op env : -> Env .
 eq env = update(update(empEnv,x,20),y,4) .
@@ -318,4 +319,45 @@ red eval(while x > n(5) {x := x - n(10) ;}, env) .
 red eval(for x n(0) n(10) {y := y + n(1) ;}, env) .
 red lookup(env,x) .
 
+op p1 : -> Stm .
+eq p1 = x := n(1) ;
+        y := n(1) ;
+        while y < n(10) || y === n(10) {
+            x := x * y ;
+            y := y + n(1) ;
+          } .
+red interpret(p1) .
+op p2 : -> Stm .
+eq p2 = x := n(1) ;
+        for y n(1) n(10) {
+            x := y * x ;
+          } .
+red interpret(p2) .
+op p3 : -> Stm .
+eq p3 = x := n(24) ;
+        y := n(30) ;
+        while y =!= n(0) {
+            z := x % y ;
+            x := y ;
+            y := z ;
+          } .
+red interpret(p3) .
+
+op p4 : -> Stm .
+eq p4 = x := n(20000000000000000) ;
+        y := n(0) ;
+        z := x ;
+        while y =!= z {
+            if ((z - y) % n(2)) === n(0) {
+              tmp := y + (z - y) / n(2) ;
+            } else {
+              tmp := y + ((z - y) / n(2)) + n(1) ;
+            }
+            if tmp * tmp > x {
+              z := tmp - n(1) ;
+            } else {
+              y := tmp ;
+            }
+          } .
+red interpret(p4) .
 close
