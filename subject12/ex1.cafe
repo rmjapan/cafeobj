@@ -1,0 +1,75 @@
+mod LIST1 (E :: TRIV){
+    [List]
+    op nil : -> List {constr} 
+    op _|_ : Elt.E List -> List {constr} .
+    op _@_ : List List -> List .
+    op rev1 : List -> List .
+    op rev2 : List -> List .
+    op sr2 : List List -> List .
+    
+    vars L1 L2 L3 : List .
+    vars E E2 : Elt.E .
+    eq (nil = E | L1) = false .
+    eq (E | L1 = E2 | L2) = (E = E2) and (L1 = L2) .
+    eq (nil @ L2) = L2 .                     -- @1
+    eq (E | L1) @ L2 = E | (L1 @ L2) .       -- @2
+    eq rev1(nil) = nil .                     -- r1-1
+    eq rev1(E | L1) = rev1(L1) @ (E | nil) . -- r1-2
+    eq rev2(L1) = sr2(L1,nil) .              -- r2
+    eq sr2(nil, L2) = L2 .                  -- sr2-1
+    eq sr2(E | L1, L2) = sr2(L1, E | L2) .  -- sr2-2
+}
+
+-- open LIST1 .
+--     vars e1 e2 e3 e4 : Elt.E .
+--     red (e1 | e2 | nil) @ (e3 | e4 | nil) .
+--     red rev1(e1 | e2 | e3 | nil) .
+--     red rev2(e1 | e2 | e3 | nil) .
+-- close
+"Theorem1: @の結合法則
+以下の式が成り立つことをL1に対する構造帰納法で証明する。
+l1 @ (l2 @ l3) = (l1 @ l2) @ l3
+"
+"1:base case"
+open LIST1 .
+    -- fresh constants
+    ops l2 l3 : -> List .
+    -- check
+    red nil @ (l2 @ l3) = (nil @ l2) @ l3 .
+close
+"2:induction case"
+open LIST1 .
+    -- fresh constants
+    ops l1 l2 l3 : -> List .
+    op e : -> Elt.E .
+    -- 帰納法の仮定（IH）
+    eq (l1 @ L2) @ L3 = l1 @ (L2 @ L3) . -- IH
+    -- check
+    red ((e | l1) @ l2) @ l3 = (e | l1) @ (l2 @ l3) .
+close
+"End of proof of Theorem1"
+
+"Theorem2:末尾再帰逆順の正しさ"
+"以下の式が成り立つことをL1に対する構造帰納法で証明する。
+rev1(L1) = rev2(L1)
+"
+"1:base case"
+open LIST1 .
+ -- fresh constants
+ ops l1 : -> List .
+ -- check
+ red rev1(nil) = rev2(nil) .
+close
+"2:induction case"
+open LIST1 .
+ -- fresh constants
+ ops l1 : -> List .
+ op e : -> Elt.E .
+ -- 帰納法の仮定（IH）
+ eq rev1(L1) = rev2(L1) . -- IH
+ -- 補題(Lemma)
+ eq sr2(L1,E2 | L2) = sr2(L1,nil) @ (E2 | L2) . -- Lemma
+ -- check
+ red rev1(e | l1) = rev2(e | l1) .
+close
+"End of proof of Theorem2"
